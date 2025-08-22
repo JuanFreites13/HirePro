@@ -106,19 +106,50 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
         setLoading(true)
         console.log('🔄 Cargando datos del dashboard...')
         
-        // Datos mock simples para evitar errores
-        setCandidates([])
-        
-        setStats({
-          totalCandidates: 0,
-          activeProcesses: 0,
-          scheduledInterviews: 0,
-          stalled: 0
-        })
-        
-        console.log('📊 Dashboard cargado con datos mock')
+        try {
+          const [candidatesData, applicationsData] = await Promise.all([
+            candidatesService.getAllCandidates(),
+            applicationsService.getAllApplications()
+          ])
+          
+          setCandidates(candidatesData || [])
+          
+          // Calcular estadísticas de forma segura
+          const totalCandidates = candidatesData?.length || 0
+          const activeProcesses = applicationsData?.filter(app => app.status === 'active').length || 0
+          const scheduledInterviews = candidatesData?.filter(c => 
+            c.stage === 'primera-entrevista' || c.stage === 'segunda-entrevista'
+          ).length || 0
+          const stalled = candidatesData?.filter(c => 
+            c.stage === 'stand-by'
+          ).length || 0
+          
+          setStats({
+            totalCandidates,
+            activeProcesses,
+            scheduledInterviews,
+            stalled
+          })
+          
+          console.log('📊 Dashboard cargado:', {
+            candidates: totalCandidates,
+            applications: activeProcesses,
+            interviews: scheduledInterviews,
+            stalled
+          })
+        } catch (dataError) {
+          console.warn('⚠️ Error cargando datos, usando mock:', dataError)
+          // Usar datos mock en caso de error
+          setCandidates([])
+          setStats({
+            totalCandidates: 0,
+            activeProcesses: 0,
+            scheduledInterviews: 0,
+            stalled: 0
+          })
+        }
       } catch (error) {
-        console.error('❌ Error cargando dashboard:', error)
+        console.error('❌ Error general cargando dashboard:', error)
       } finally {
         setLoading(false)
       }
