@@ -45,6 +45,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { sendEmail } from "@/lib/backend-api"
+import googleCalendarService from "@/lib/google-calendar-service"
 // Evaluations Tab Component
 function EvaluationsTabContent({ candidateId }: { candidateId: number }) {
   const [evaluations, setEvaluations] = useState<any[]>([])
@@ -1005,44 +1006,53 @@ export default function CandidateDetailPage() {
       setScheduleLoading(true)
       console.log('📅 Agendando entrevista:', scheduleData)
 
-      // Usar el backend de Render para crear la reunión y enviar email
-      const result = await sendEmail({
-        to: candidate.email,
-        subject: `Entrevista programada - ${scheduleData.date} ${scheduleData.time}`,
-        message: `Hola ${candidate.name},\n\nTe confirmamos tu entrevista programada para el ${scheduleData.date} a las ${scheduleData.time}.\n\nDuración: ${scheduleData.duration} minutos\nNotas: ${scheduleData.notes || 'Sin notas adicionales'}\n\nSaludos,\nEquipo de TalentoPro`,
-        selectedPostulation: scheduleData.postulationId,
-        createMeeting: true,
-        meetingDate: scheduleData.date,
-        meetingTime: scheduleData.time
-      })
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Error agendando entrevista')
+      // Obtener datos del candidato y entrevistador
+      const selectedUser = users.find(user => user.id.toString() === scheduleData.assigneeId)
+      const selectedPostulation = candidatePostulations.find(p => p.id.toString() === scheduleData.postulationId) ||
+                                 applications.find(app => app.id.toString() === scheduleData.postulationId.replace('app-', ''))
+
+      if (!selectedUser || !selectedPostulation) {
+        alert('Error: No se encontró el usuario o postulación seleccionada')
+        return
       }
 
-      // Cerrar modal y resetear estado
-      setShowScheduleModal(false)
-      setScheduleData({
-        date: '',
-        time: '',
-        duration: 60,
-        assigneeId: '',
-        postulationId: '',
-        notes: ''
-      })
-      
-      // Forzar re-render del componente
-      setForceUpdate(prev => prev + 1)
-      console.log('✅ Entrevista agendada, cerrando modal y forzando re-render')
-      setTimeout(() => {
-        alert('Entrevista agendada exitosamente. La página se refrescará automáticamente.')
-        // Refrescar la página después del alert
-        window.location.reload()
-      }, 100)
+      // Preparar datos para el servicio de Google Calendar
+      const interviewData = {
+        candidateName: candidate?.name || '',
+        candidateEmail: candidate?.email || '',
+        interviewerName: selectedUser.name || selectedUser.email,
+        interviewerEmail: selectedUser.email,
+        date: scheduleData.date,
+        time: scheduleData.time,
+        duration: scheduleData.duration,
+        postulationTitle: selectedPostulation.title || selectedPostulation.applications?.title || 'Entrevista',
+        notes: scheduleData.notes
+      }
+
+      // Usar el nuevo servicio de Google Calendar
+      const result = await googleCalendarService.scheduleInterview(interviewData)
+
+      if (result.success) {
+        alert(`✅ Entrevista agendada exitosamente!\n\n📅 Evento creado en Google Calendar\n📧 Email enviado al candidato\n\n${result.eventUrl ? `Ver evento: ${result.eventUrl}` : ''}`)
+        setShowScheduleModal(false)
+        setScheduleData({
+          date: '',
+          time: '',
+          duration: 60,
+          postulationId: '',
+          assigneeId: '',
+          notes: ''
+        })
+      } else {
+        alert(`❌ Error agendando entrevista: ${result.error}`)
+      }
     } catch (error: any) {
       console.error('❌ Error scheduling interview:', error)
       alert('Error agendando entrevista: ' + error.message)
     } finally {
+      setScheduleLoading(false)
+    }
+  }
       setScheduleLoading(false)
     }
   }
