@@ -15,7 +15,8 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'https://hire-pro.vercel.app',
-    'https://hire-pro-agendapro.vercel.app'
+    'https://hire-pro-agendapro.vercel.app',
+    'https://hire-pro-topaz.vercel.app'
   ],
   credentials: true
 }));

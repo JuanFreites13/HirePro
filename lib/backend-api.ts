@@ -78,7 +78,7 @@ class BackendAPI {
 
   // Email APIs
   async sendEmail(emailData: EmailData): Promise<ApiResponse> {
-    return this.request('/api/email/send', {
+    return this.request('/api/send-email', {
       method: 'POST',
       body: JSON.stringify(emailData),
     })
