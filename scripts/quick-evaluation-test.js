@@ -1,0 +1,55 @@
+// Script rápido para probar evaluaciones
+console.log('🧪 PRUEBA RÁPIDA DE EVALUACIONES')
+console.log('==================================\n')
+
+console.log('📋 INSTRUCCIONES PARA PROBAR:')
+console.log('=============================\n')
+
+console.log('1. 🎯 MOVER CANDIDATO CON EVALUACIÓN:')
+console.log('   • Ve a localhost:3000')
+console.log('   • Postulaciones → "test"')
+console.log('   • Mueve "sadjaksjd" de "2ª Entrevista" a "Fit Cultural"')
+console.log('   • Completa el modal con:')
+console.log('     - Puntaje: 10')
+console.log('     - Feedback: "Excelente candidato con puntaje perfecto"')
+console.log('     - Responsable: "admin@talentopro.com"')
+console.log('   • Haz clic en "Confirmar"')
+console.log()
+
+console.log('2. 🔍 VERIFICAR EN PERFIL DEL CANDIDATO:')
+console.log('   • Ve al perfil de "sadjaksjd"')
+console.log('   • Pestaña "Evaluaciones"')
+console.log('   • Deberías ver la evaluación creada')
+console.log()
+
+console.log('3. 📊 VERIFICAR EN PIPELINE:')
+console.log('   • Regresa al pipeline de "test"')
+console.log('   • "sadjaksjd" debería estar en "Fit Cultural"')
+console.log('   • El puntaje debería mostrarse en la tarjeta')
+console.log()
+
+console.log('4. 🔄 PROBAR MÚLTIPLES MOVIMIENTOS:')
+console.log('   • Mueve "sadjaksjd" a "Seleccionado"')
+console.log('   • Completa otra evaluación')
+console.log('   • Verifica que ambas evaluaciones aparezcan en el perfil')
+console.log()
+
+console.log('❓ SI NO FUNCIONA:')
+console.log('==================')
+console.log('• Revisa la consola del navegador para errores')
+console.log('• Verifica que el script supabase/complete-setup.sql se ejecutó')
+console.log('• Asegúrate de que las tablas candidate_evaluations existen')
+console.log()
+
+console.log('🎯 LOGS A BUSCAR EN CONSOLA:')
+console.log('============================')
+console.log('✅ "Evaluación guardada exitosamente para candidato: X"')
+console.log('✅ "Cargando evaluaciones para candidato ID: X"')
+console.log('✅ "Evaluaciones cargadas: [...]"')
+console.log('❌ "Error al guardar evaluación"')
+console.log('❌ "Error loading evaluations"')
+console.log()
+
+console.log('🚀 ¡EMPIEZA LA PRUEBA!')
+console.log('======================')
+
