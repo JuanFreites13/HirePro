@@ -1053,9 +1053,6 @@ export default function CandidateDetailPage() {
       setScheduleLoading(false)
     }
   }
-      setScheduleLoading(false)
-    }
-  }
 
   const handleSendEmail = async () => {
     try {
