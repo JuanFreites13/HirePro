@@ -1,0 +1,30 @@
+{
+  "name": "hirepro-backend",
+  "version": "1.0.0",
+  "description": "HirePro Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.2.0",
+    "morgan": "^1.10.1",
+    "dotenv": "^16.6.1",
+    "multer": "^1.4.5-lts.2",
+    "openai": "^4.104.0",
+    "@supabase/supabase-js": "^2.56.0",
+    "resend": "^3.5.0",
+    "googleapis": "^157.0.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=8.0.0"
+  }
+}
