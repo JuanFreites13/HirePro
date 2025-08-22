@@ -74,7 +74,7 @@ export function ListView({ candidates, onSelectCandidate, getStatusColor, getSta
 
                 <div className="text-center">
                   <div className="text-sm font-medium">Puntaje</div>
-                  <div className="text-lg font-bold text-purple-600">{candidate.score.toFixed(1)}</div>
+                  <div className="text-lg font-bold text-purple-600">{candidate.score ? candidate.score.toFixed(1) : '0.0'}</div>
                 </div>
 
                 <div className="text-center">

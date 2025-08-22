@@ -151,7 +151,7 @@ export function KanbanView({
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-gray-600">Puntaje</div>
-                          <div className="text-sm font-bold text-purple-600">{candidate.score.toFixed(1)}</div>
+                          <div className="text-sm font-bold text-purple-600">{candidate.score ? candidate.score.toFixed(1) : '0.0'}</div>
                         </div>
                       </div>
 

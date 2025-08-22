@@ -417,7 +417,7 @@ export function PipelineView({ applicationId }: PipelineViewProps) {
                             {candidate.score && candidate.score > 0 && (
                               <div className="flex items-center gap-1">
                                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                <span>{candidate.score.toFixed(1)}</span>
+                                <span>{candidate.score ? candidate.score.toFixed(1) : '0.0'}</span>
                               </div>
                             )}
                             <div className="flex items-center gap-1">

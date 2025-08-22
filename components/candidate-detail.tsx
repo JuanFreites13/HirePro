@@ -311,7 +311,7 @@ export function CandidateDetail({ candidateId, onBack }: CandidateDetailProps) {
                           <SelectContent>
                             {[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0].map((score) => (
                               <SelectItem key={score} value={score.toString()}>
-                                {score.toFixed(1)}/7
+                                {score ? score.toFixed(1) : '0.0'}/7
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -360,7 +360,7 @@ export function CandidateDetail({ candidateId, onBack }: CandidateDetailProps) {
                               <div className="flex items-center space-x-2">
                                 <div className="flex items-center">
                                   <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                                  <span className="font-medium">{note.score.toFixed(1)}/7</span>
+                                  <span className="font-medium">{note.score ? note.score.toFixed(1) : '0.0'}/7</span>
                                 </div>
                                 <span className="text-sm text-gray-500">{note.date}</span>
                               </div>

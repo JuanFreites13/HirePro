@@ -79,7 +79,7 @@ export function CardsView({ candidates, onSelectCandidate, getStatusColor, getSt
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm text-gray-600">Puntaje</div>
-                  <div className="text-xl font-bold text-purple-600">{candidate.score.toFixed(1)}</div>
+                  <div className="text-xl font-bold text-purple-600">{candidate.score ? candidate.score.toFixed(1) : '0.0'}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Responsable</div>
