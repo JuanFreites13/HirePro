@@ -28,6 +28,7 @@ import { ListView } from "./list-view"
 import { CardsView } from "./cards-view"
 import { KanbanView } from "./kanban-view"
 import { useAuth } from "./auth-provider"
+import { candidatesService, applicationsService } from "@/lib/supabase-service"
 import type { Page } from "./main-app"
 
 
@@ -60,6 +61,13 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"list" | "cards" | "kanban">("list")
   const [candidates, setCandidates] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalCandidates: 0,
+    activeProcesses: 0,
+    scheduledInterviews: 0,
+    stalled: 0
+  })
 
   const postulationCandidates = selectedPostulation
     ? candidates.filter((candidate) => candidate.postulationId === selectedPostulation)
@@ -90,6 +98,53 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
   const handleStageFilterChange = (stage: string) => {
     setStageFilters((prev) => (prev.includes(stage) ? prev.filter((s) => s !== stage) : [...prev, stage]))
   }
+
+  // Cargar datos del dashboard
+  React.useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true)
+        console.log('🔄 Cargando datos del dashboard...')
+        
+        const [candidatesData, applicationsData] = await Promise.all([
+          candidatesService.getAllCandidates(),
+          applicationsService.getAllApplications()
+        ])
+        
+        setCandidates(candidatesData || [])
+        
+        // Calcular estadísticas
+        const totalCandidates = candidatesData?.length || 0
+        const activeProcesses = applicationsData?.filter(app => app.status === 'active').length || 0
+        const scheduledInterviews = candidatesData?.filter(c => 
+          c.stage === 'primera-entrevista' || c.stage === 'segunda-entrevista'
+        ).length || 0
+        const stalled = candidatesData?.filter(c => 
+          c.stage === 'stand-by'
+        ).length || 0
+        
+        setStats({
+          totalCandidates,
+          activeProcesses,
+          scheduledInterviews,
+          stalled
+        })
+        
+        console.log('📊 Dashboard cargado:', {
+          candidates: totalCandidates,
+          applications: activeProcesses,
+          interviews: scheduledInterviews,
+          stalled
+        })
+      } catch (error) {
+        console.error('❌ Error cargando dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadDashboardData()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -148,7 +203,13 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{filteredCandidates.length}</div>
+              <div className="text-2xl font-bold">
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                ) : (
+                  stats.totalCandidates
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -159,7 +220,11 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {filteredCandidates.filter((c) => !["Seleccionado", "Descartado"].includes(c.stage)).length}
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                ) : (
+                  stats.activeProcesses
+                )}
               </div>
             </CardContent>
           </Card>
@@ -171,7 +236,11 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {filteredCandidates.filter((c) => c.status === "scheduled").length}
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                ) : (
+                  stats.scheduledInterviews
+                )}
               </div>
             </CardContent>
           </Card>
@@ -183,7 +252,11 @@ export function Dashboard({ onNavigate, selectedPostulation, onBackToPostulation
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {filteredCandidates.filter((c) => c.status === "stalled").length}
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                ) : (
+                  stats.stalled
+                )}
               </div>
             </CardContent>
           </Card>
