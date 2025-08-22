@@ -6,6 +6,9 @@ interface SupabaseConfig {
   supabaseAnonKey: string
 }
 
+// Singleton para evitar múltiples instancias
+let supabaseInstance: any = null
+
 export function useSupabase() {
   const [supabase, setSupabase] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -16,6 +19,13 @@ export function useSupabase() {
       try {
         setLoading(true)
         setError(null)
+
+        // Si ya existe una instancia, usarla
+        if (supabaseInstance) {
+          setSupabase(supabaseInstance)
+          setLoading(false)
+          return
+        }
 
         // Intentar obtener configuración desde el endpoint API
         const response = await fetch('/api/env')
@@ -29,21 +39,23 @@ export function useSupabase() {
           throw new Error('Supabase configuration incomplete')
         }
 
-        // Crear cliente de Supabase
-        const client = createClient(config.supabaseUrl, config.supabaseAnonKey, {
-          auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true
-          }
-        })
+        // Crear cliente de Supabase solo si no existe
+        if (!supabaseInstance) {
+          supabaseInstance = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+            auth: {
+              autoRefreshToken: true,
+              persistSession: true,
+              detectSessionInUrl: true
+            }
+          })
 
-        // Exponer globalmente para debugging
-        if (typeof window !== 'undefined') {
-          (window as any).supabase = client
+          // Exponer globalmente para debugging
+          if (typeof window !== 'undefined') {
+            (window as any).supabase = supabaseInstance
+          }
         }
 
-        setSupabase(client)
+        setSupabase(supabaseInstance)
         console.log('✅ Supabase client initialized successfully')
       } catch (err: any) {
         console.error('❌ Error initializing Supabase:', err.message)

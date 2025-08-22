@@ -46,6 +46,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { sendEmail } from "@/lib/backend-api"
 import googleCalendarService from "@/lib/google-calendar-service"
+import { useAuth } from "@/components/auth-provider"
 // Evaluations Tab Component
 function EvaluationsTabContent({ candidateId }: { candidateId: number }) {
   const [evaluations, setEvaluations] = useState<any[]>([])
@@ -761,6 +762,7 @@ const stages = [
 export default function CandidateDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useAuth()
   const candidateId = Number(params?.id)
   const [candidate, setCandidate] = useState<any>(null)
   const [applications, setApplications] = useState<any[]>([])
@@ -1066,22 +1068,62 @@ export default function CandidateDetailPage() {
         return
       }
 
+      // Validar campos de reunión si está marcada la opción
+      if (emailData.createMeeting) {
+        if (!emailData.meetingDate || !emailData.meetingTime) {
+          alert('Por favor completa la fecha y hora de la reunión')
+          return
+        }
+      }
+
       setEmailSending(true)
       console.log('📧 Enviando email:', emailData)
       
-      // Usar el backend de Render
-      const result = await sendEmail({
-        to: candidate.email,
-        subject: emailData.subject,
-        message: emailData.message,
-        selectedPostulation: emailData.selectedPostulation,
-        createMeeting: emailData.createMeeting,
-        meetingDate: emailData.meetingDate,
-        meetingTime: emailData.meetingTime
-      })
+      let result
       
-      if (!result.success) {
-        throw new Error(result.error || 'Error enviando email')
+      if (emailData.createMeeting) {
+        // Si está marcada la opción de crear reunión, usar el servicio de Google Calendar
+        console.log('📅 Creando reunión de Google Meet...')
+        
+        // Preparar datos para Google Calendar
+        const meetingData = {
+          candidateName: candidate?.name || '',
+          candidateEmail: candidate?.email || '',
+          interviewerName: user?.name || 'Entrevistador',
+          interviewerEmail: user?.email || '',
+          date: emailData.meetingDate,
+          time: emailData.meetingTime,
+          duration: 60, // Duración por defecto 1 hora
+          postulationTitle: 'Entrevista',
+          notes: emailData.message
+        }
+        
+        // Usar el servicio de Google Calendar del backend
+        result = await googleCalendarService.scheduleInterview(meetingData)
+        
+        if (result.success) {
+          console.log('✅ Reunión creada exitosamente:', result)
+          alert(`✅ Email enviado y reunión creada exitosamente!\n\n📅 Evento creado en Google Calendar\n📧 Email enviado al candidato\n\n${result.eventUrl ? `Ver evento: ${result.eventUrl}` : ''}`)
+        } else {
+          throw new Error(result.error || 'Error creando reunión')
+        }
+      } else {
+        // Si no está marcada la opción, usar el servicio de email normal
+        console.log('📧 Enviando email sin reunión...')
+        
+        result = await sendEmail({
+          to: candidate.email,
+          subject: emailData.subject,
+          message: emailData.message,
+          selectedPostulation: emailData.selectedPostulation,
+          createMeeting: false
+        })
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Error enviando email')
+        }
+        
+        alert('✅ Email enviado exitosamente')
       }
 
       // Cerrar modal y resetear estado
@@ -1097,15 +1139,11 @@ export default function CandidateDetailPage() {
       
       // Forzar re-render del componente
       setForceUpdate(prev => prev + 1)
-      console.log('✅ Email enviado, cerrando modal y forzando re-render')
-      setTimeout(() => {
-        alert('Email enviado exitosamente. La página se refrescará automáticamente.')
-        // Refrescar la página después del alert
-        window.location.reload()
-      }, 100)
+      console.log('✅ Proceso completado exitosamente')
+      
     } catch (error: any) {
-      console.error('❌ Error sending email:', error)
-      alert('Error enviando email: ' + error.message)
+      console.error('❌ Error en handleSendEmail:', error)
+      alert('Error: ' + error.message)
     } finally {
       setEmailSending(false)
     }
