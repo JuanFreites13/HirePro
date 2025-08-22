@@ -1082,42 +1082,67 @@ export default function CandidateDetailPage() {
       let result
       
       if (emailData.createMeeting) {
-        // Si está marcada la opción de crear reunión, usar el servicio de Google Calendar
+        // Si está marcada la opción de crear reunión, usar el API de interview-email
         console.log('📅 Creando reunión de Google Meet...')
         
-        // Preparar datos para Google Calendar
-        const meetingData = {
-          candidateName: candidate?.name || '',
-          candidateEmail: candidate?.email || '',
-          interviewerName: user?.name || 'Entrevistador',
-          interviewerEmail: user?.email || '',
-          date: emailData.meetingDate,
-          time: emailData.meetingTime,
-          duration: 60, // Duración por defecto 1 hora
-          postulationTitle: 'Entrevista',
-          notes: emailData.message
+        // Usar la API local que creamos para enviar emails con reunión
+        const response = await fetch('/api/send-interview-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            candidateEmail: candidate?.email,
+            candidateName: candidate?.name,
+            interviewerName: user?.name || 'Entrevistador',
+            postulationTitle: emailData.subject,
+            date: emailData.meetingDate,
+            time: emailData.meetingTime,
+            duration: 60,
+            eventUrl: '#', // Placeholder
+            notes: emailData.message
+          })
+        })
+        
+        if (!response.ok) {
+          throw new Error(`Error enviando email: ${response.status}`)
         }
         
-        // Usar el servicio de Google Calendar del backend
-        result = await googleCalendarService.scheduleInterview(meetingData)
+        result = await response.json()
         
-        if (result.success) {
-          console.log('✅ Reunión creada exitosamente:', result)
-          alert(`✅ Email enviado y reunión creada exitosamente!\n\n📅 Evento creado en Google Calendar\n📧 Email enviado al candidato\n\n${result.eventUrl ? `Ver evento: ${result.eventUrl}` : ''}`)
-        } else {
-          throw new Error(result.error || 'Error creando reunión')
+        if (!result.success) {
+          throw new Error(result.error || 'Error enviando email')
         }
+        
+        alert('✅ Email enviado exitosamente!')
       } else {
         // Si no está marcada la opción, usar el servicio de email normal
         console.log('📧 Enviando email sin reunión...')
         
-        result = await sendEmail({
-          to: candidate.email,
-          subject: emailData.subject,
-          message: emailData.message,
-          selectedPostulation: emailData.selectedPostulation,
-          createMeeting: false
+        // Usar la API local de send-email
+        const response = await fetch('/api/send-interview-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            candidateEmail: candidate?.email,
+            candidateName: candidate?.name,
+            interviewerName: user?.name || 'Entrevistador',
+            postulationTitle: emailData.subject,
+            date: new Date().toISOString().split('T')[0],
+            time: '12:00',
+            duration: 60,
+            eventUrl: '', // Sin reunión
+            notes: emailData.message
+          })
         })
+        
+        if (!response.ok) {
+          throw new Error(`Error enviando email: ${response.status}`)
+        }
+        
+        result = await response.json()
         
         if (!result.success) {
           throw new Error(result.error || 'Error enviando email')
